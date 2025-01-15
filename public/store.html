@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px;
+            display: inline-block;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .product-card h3 {
+            font-size: 18px;
+            margin: 0;
+        }
+        .product-card p {
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        .product-card button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .product-card button:hover {
+            background-color: #218838;
+        }
+        .cart-item {
+            border: 1px solid #ddd;
+            padding: 16px;
+            margin: 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .remove-btn:hover {
+            background-color: darkred;
+        }
+        #total-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Product Store</h1>
+    <div id="products"></div>
+
+    <h2>Your Cart</h2>
+    <div id="cart"></div>
+    <div id="total-value">Total: ₹0</div>
+
+    <script>
+        let cart = []; // Array to store cart items
+
+        // Fetch products from the database
+        fetch('/api/products')
+            .then(response => response.json())
+            .then(products => {
+                const productsDiv = document.getElementById('products');
+                products.forEach(product => {
+                    const productCard = document.createElement('div');
+                    productCard.classList.add('product-card');
+                    productCard.innerHTML = `
+                        <h3>${product.name}</h3>
+                        <p>Price: ₹${product.price}</p>
+                        <p>Description: ${product.description}</p>
+                        <p>Weight: ${product.weight}</p>
+                        <button onclick="addToCart('${product._id}', '${product.name}', ${product.price}, '${product.description}', '${product.weight}')">Add to Cart</button>
+                    `;
+                    productsDiv.appendChild(productCard);
+                });
+            });
+
+        // Add product to cart
+        function addToCart(productId, name, price, description, weight) {
+            const product = { productId, name, price, description, weight };
+            cart.push(product); // Add product to cart array
+            updateCart(); // Update cart display
+        }
+
+        // Remove product from cart
+        function removeFromCart(index) {
+            cart.splice(index, 1); // Remove the product at the specified index
+            updateCart(); // Update cart display
+        }
+
+        // Update cart display
+        function updateCart() {
+            const cartDiv = document.getElementById('cart');
+            const totalValueDiv = document.getElementById('total-value');
+            cartDiv.innerHTML = ''; // Clear the cart div
+
+            if (cart.length === 0) {
+                cartDiv.innerHTML = '<p>Your cart is empty.</p>';
+                totalValueDiv.innerHTML = 'Total: ₹0';
+                return;
+            }
+
+            let totalValue = 0; // Initialize total value
+            cart.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.classList.add('cart-item');
+                cartItem.innerHTML = `
+                    <div>
+                        <h3>${item.name}</h3>
+                        <p>Price: ₹${item.price}</p>
+                        <p>Description: ${item.description}</p>
+                        <p>Weight: ${item.weight}</p>
+                    </div>
+                    <button class="remove-btn" onclick="removeFromCart(${index})">X</button>
+                `;
+                cartDiv.appendChild(cartItem);
+                totalValue += item.price; // Add the price of the product to the total value
+            });
+
+            totalValueDiv.innerHTML = `Total: ₹${totalValue}`; // Update the total value
+        }
+    </script>
+</body>
+</html>
